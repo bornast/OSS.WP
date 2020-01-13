@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+<table class="table" style="width: 100%;">
+	<thead>
+		<tr>
+			<th scope="col">#</th>
+			<th scope="col">Name</th>
+			<th scope="col">Code</th>
+			<th scope="col">Actions</th>
+		</tr>
+	</thead>
+	<tbody>
+		{%for subject in subjects %}	
+			<tr>
+				<th scope="row">{{ subject.id }}</th>
+				<td>{{ subject.ime }}</td>
+				<td>{{ subject.kod }}</td>
+				<td><button type="button" class="btn btn-primary">Edit</button></td>
+			</tr>
+		{%endfor%}			
+	</tbody>
+</table>
+
+{% endblock %}
