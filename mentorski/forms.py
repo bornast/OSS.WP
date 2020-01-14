@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
+from .models import Predmeti
 
 User = get_user_model()
 
@@ -34,6 +35,39 @@ class RegisterForm(forms.ModelForm):
         if commit:
             user.save()
         return user
+
+class SubjectCreate(forms.ModelForm):
+    class Meta:
+        model = Predmeti
+        fields = '__all__'
+
+class SubjectView(forms.ModelForm):
+    ime = forms.CharField(
+        widget=forms.TextInput(attrs={'readonly':'readonly'})
+    )
+    kod = forms.CharField(
+        widget=forms.TextInput(attrs={'readonly':'readonly'})
+    )
+    program = forms.CharField(
+        widget=forms.TextInput(attrs={'readonly':'readonly'})
+    )
+    bodovi = forms.IntegerField(
+        widget=forms.TextInput(attrs={'readonly':'readonly'})
+    )
+    sem_redovni = forms.IntegerField(
+        widget=forms.TextInput(attrs={'readonly':'readonly'})
+    )
+    sem_izvanredni = forms.IntegerField(
+        widget=forms.TextInput(attrs={'readonly':'readonly'})
+    )
+    izborni = forms.CharField(
+        widget=forms.TextInput(attrs={'readonly':'readonly'})
+    )
+
+    class Meta:
+        model = Predmeti
+        fields = '__all__'
+
 
 # from django import forms
 # from django.contrib.auth.forms import UserCreationForm

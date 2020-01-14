@@ -26,8 +26,8 @@ class Predmeti(models.Model):
     sem_izvanredni = models.IntegerField(max_length=11)
     
     class Izborni(models.TextChoices):
-        DA = 'da', _('Ne')
-        NE = 'ne', _('Ne')
+        DA = 'Ne', _('Ne')
+        NE = 'Da', _('Da')
         
     izborni = models.CharField(
         max_length=10,

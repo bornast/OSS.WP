@@ -10,5 +10,8 @@ urlpatterns = [
     path('logout/', views.logout_page, name='logout'),
     path('students/', views.students_page, name='students'),
     path('subjects/', views.subjects_page, name='subjects'),
-    # path('login/', LoginView.as_view(template_name='login.html'), name='login'),
+    path('subject_create/', views.create_subject, name='create_subjects'),
+    path('subject_edit/<int:subject_id>/', views.edit_subject, name='edit'),
+    path('subject_delete/<int:subject_id>/', views.delete_subject, name='delete'),
+    path('subject_view/<int:subject_id>/', views.view_subject, name='view'),
 ]

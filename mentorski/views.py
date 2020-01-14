@@ -5,10 +5,14 @@ from django.utils.http import is_safe_url
 from django.contrib.auth.decorators import login_required
 from .models import Korisnici, Predmeti
 
-from .forms import LoginForm, RegisterForm
+from .forms import LoginForm, RegisterForm, SubjectCreate, SubjectView
 
 
 def login_page(request):
+    loggedUser = request.user
+    if loggedUser.id:
+        return redirect("/")
+
     form = LoginForm(request.POST or None)
     context = {
         "form": form
@@ -20,8 +24,6 @@ def login_page(request):
         username  = form.cleaned_data.get("email")
         password  = form.cleaned_data.get("password")
         user = authenticate(request, username=username, password=password)
-        print ("aaa")
-        print (user)
         if user is not None:
             login(request, user)
             try:
@@ -33,12 +35,9 @@ def login_page(request):
             else:
                 return redirect("/")
         else:
-            # Return an 'invalid login' error message.
             print("Error")
     return render(request, "mentorski/login.html", context)
 
-
-# User = get_user_model()
 def register_page(request):
     form = RegisterForm(request.POST or None)
     context = {
@@ -46,6 +45,7 @@ def register_page(request):
     }
     if form.is_valid():
         form.save()
+        return redirect('/mentorski/login')
     return render(request, "mentorski/register.html", context)
 
 def logout_page(request):
@@ -71,6 +71,52 @@ def subjects_page(request):
 
     context['subjects'] = Predmeti.objects.all()
     return render(request, "mentorski/subjects.html", context)
+
+@login_required(login_url='/mentorski/login')
+def create_subject(request):
+    uploadForm = SubjectCreate()
+    if request.method == 'POST':
+        uploadForm = SubjectCreate(request.POST)
+        if uploadForm.is_valid():
+            uploadForm.save()
+            return redirect('/mentorski/subjects')
+        else:
+            return HttpResponse("""your form is wrong, reload on <a href = "{{ url : '/mentorski/subjects'}}">reload</a>""")
+    else:
+        return render(request, 'mentorski/subject_create.html', {'subject_form':uploadForm})
+
+@login_required(login_url='/mentorski/login')
+def edit_subject(request, subject_id):
+    subject_id = int(subject_id)
+    try:
+        subject = Predmeti.objects.get(id = subject_id)
+    except Predmeti.DoesNotExist:
+        return redirect('/mentorski/subjects')
+    subject_form = SubjectCreate(request.POST or None, instance = subject)
+    if subject_form.is_valid():
+       subject_form.save()
+       return redirect('/mentorski/subjects')
+    return render(request, 'mentorski/subject_edit.html', {'subject_form':subject_form})
+
+@login_required(login_url='/mentorski/login')
+def delete_subject(request, subject_id):
+    subject_id = int(subject_id)
+    try:
+        subject = Predmeti.objects.get(id = subject_id)
+    except Predmeti.DoesNotExist:
+        return redirect('/mentorski/subjects')
+    subject.delete()
+    return redirect('/mentorski/subjects')
+
+@login_required(login_url='/mentorski/login')
+def view_subject(request, subject_id):
+    subject_id = int(subject_id)
+    try:
+        subject = Predmeti.objects.get(id = subject_id)
+    except Predmeti.DoesNotExist:
+        return redirect('/mentorski/subjects')
+    subject_form = SubjectView(request.POST or None, instance = subject)
+    return render(request, 'mentorski/subject_view.html', {'subject_form':subject_form})
 
 # from django.shortcuts import render, redirect
 # from django.contrib.auth.forms import UserCreationForm, AuthenticationForm

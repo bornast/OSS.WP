@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
+<center><h2>Subjects</h2></center>
+<a type="button" class="btn btn-success" href="/mentorski/subject_create" style="margin-bottom: 10px; color: white;">Create</a>
 <table class="table" style="width: 100%;">
 	<thead>
 		<tr>
@@ -10,15 +12,18 @@
 		</tr>
 	</thead>
 	<tbody>
-		{%for subject in subjects %}	
+		{% for subject in subjects %}	
 			<tr>
 				<th scope="row">{{ subject.id }}</th>
 				<td>{{ subject.ime }}</td>
 				<td>{{ subject.kod }}</td>
-				<td><button type="button" class="btn btn-primary">Edit</button></td>
+				<td>
+					<a href="/mentorski/subject_edit/{{subject.id}}" type="button" class="btn btn-primary" style="color:white;">Edit</a>
+					<a href="/mentorski/subject_view/{{subject.id}}" type="button" class="btn btn-primary" style="color:white;">View</a>
+					<a onclick="return confirm('Delete entry?')" href="/mentorski/subject_delete/{{subject.id}}" type="button" class="btn btn-danger" style="color:white;">Delete</a>
+				</td>
 			</tr>
-		{%endfor%}			
+		{% endfor %}			
 	</tbody>
 </table>
-
 {% endblock %}
