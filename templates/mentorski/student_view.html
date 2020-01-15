@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="row">
+	<div class="col-sm-6">
+		<h4>Subjects</h4>
+		<br>
+		<ul class="list-group">
+			{% for not_enrolled_subject in not_enrolled_subjects %}	
+				<li class="list-group-item">
+					{{ not_enrolled_subject.ime }}
+					<a href="/mentorski/enroll_subject/{{ not_enrolled_subject.id }}/{{ student_id }}" type="button" class="btn btn-primary" style="color: white; float: right;">Enroll</a>
+				</li>				
+			{% endfor %}
+		</ul>
+	</div>
+	<div class="col-sm-6">
+		<h4>Student {{ student.email }}</h4>
+		<br>
+		<ul class="list-group">
+			{% for semester, enrolled_subjects in enrolled_subjects_by_semester.items %}
+				<li class="list-group-item" style="font-weight: bold;">Semester {{ semester }}:</li>
+				{% for enrolled_subject in enrolled_subjects %}					
+					<li class="list-group-item">
+						{{ enrolled_subject.ime }}
+						{% if enrolled_subject.id in passed_enrolled_subject_ids %}
+							<a href="/mentorski/mark_subject_as_not_passed/{{ enrolled_subject.id }}/{{ student_id }}" type="button" class="btn btn-danger" style="color: white; float: right;">Mark as not Passed</a>
+						{% else %}
+							<a href="/mentorski/disenroll_subject/{{ enrolled_subject.id }}/{{ student_id }}" type="button" class="btn btn-danger" style="color: white; float: right;">Disenroll</a>
+							<a href="/mentorski/mark_subject_as_passed/{{ enrolled_subject.id }}/{{ student_id }}" type="button" class="btn btn-primary" style="color: white; float: right; margin-right: 5px;;">Mark as Passed</a>							
+						{% endif %}
+					</li>
+				{% endfor %}
+				<br>
+			{% endfor %}
+		</ul>
+	</div>	
+</div>
+
+{% endblock %}

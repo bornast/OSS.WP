@@ -14,7 +14,10 @@
 			<tr>
 				<th scope="row">{{ student.id }}</th>
 				<td>{{ student.email }}</td>
-				<td><button type="button" class="btn btn-primary">Edit</button></td>
+				<td>
+					<a href="/mentorski/student_view/{{student.id}}" type="button" class="btn btn-primary" style="color: white;">Edit</a>
+					<a href="/mentorski/student_delete/{{student.id}}" onclick="return confirm('Delete entry?')" type="button" class="btn btn-danger" style="color: white;">Delete</a>
+				</td>
 			</tr>
 		{%endfor%}			
 	</tbody>

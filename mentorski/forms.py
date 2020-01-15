@@ -67,32 +67,3 @@ class SubjectView(forms.ModelForm):
     class Meta:
         model = Predmeti
         fields = '__all__'
-
-
-# from django import forms
-# from django.contrib.auth.forms import UserCreationForm
-# from django.contrib.auth import authenticate
-# from .models import Korisnici
-
-# class RegistrationForm(UserCreationForm):
-
-#     class Meta:
-#         model = Korisnici
-#         fields = ["email", "status"]
-
-# class KorisnikAuthenticationForm(forms.ModelForm):
-#     password = forms.CharField(label="Password", widget=forms.PasswordInput)
-
-#     class Meta: # what to expect in form
-#         model = Korisnici
-#         fields = ("email", "password")
-
-#     def clean(self): # interceptor 
-#         email = self.cleaned_data['email']
-#         password = self.cleaned_data['password']
-#         print (email)
-#         print (password)
-#         a = authenticate(email= email, password = password)
-#         print (a)
-#         if not authenticate(email = email, password = password):
-#             raise forms.ValidationError("Invalid login!")

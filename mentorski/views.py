@@ -3,10 +3,10 @@ from django.http import HttpResponse
 from django.shortcuts import render,redirect
 from django.utils.http import is_safe_url
 from django.contrib.auth.decorators import login_required
-from .models import Korisnici, Predmeti
-
+from .models import Korisnici, Predmeti, Upisi
 from .forms import LoginForm, RegisterForm, SubjectCreate, SubjectView
-
+from .decorators import mentors_only
+from collections import OrderedDict
 
 def login_page(request):
     loggedUser = request.user
@@ -48,31 +48,35 @@ def register_page(request):
         return redirect('/mentorski/login')
     return render(request, "mentorski/register.html", context)
 
+@login_required(login_url='/mentorski/login')
 def logout_page(request):
     logout(request)
     return redirect('/mentorski/login')
 
-@login_required(login_url='/mentorski/login')
+@mentors_only
 def students_page(request):
     context = {}
-    loggedUser = request.user
-    if loggedUser.role != 'Mentor':
-        return redirect('/mentorski/login')
 
     context['students'] = Korisnici.objects.filter(role='Student')
     return render(request, "mentorski/students.html", context)
 
-@login_required(login_url='/mentorski/login')
+@mentors_only
+def delete_student(request, student_id):
+    student_id = int(student_id)
+    try:
+        student = Korisnici.objects.get(id = student_id)
+    except Korisnici.DoesNotExist:
+        return redirect('/mentorski/students')
+    student.delete()
+    return redirect('/mentorski/students')
+
+@mentors_only
 def subjects_page(request):
     context = {}
-    loggedUser = request.user
-    if loggedUser.role != 'Mentor':
-        return redirect('/mentorski/login')
-
     context['subjects'] = Predmeti.objects.all()
     return render(request, "mentorski/subjects.html", context)
 
-@login_required(login_url='/mentorski/login')
+@mentors_only
 def create_subject(request):
     uploadForm = SubjectCreate()
     if request.method == 'POST':
@@ -85,7 +89,7 @@ def create_subject(request):
     else:
         return render(request, 'mentorski/subject_create.html', {'subject_form':uploadForm})
 
-@login_required(login_url='/mentorski/login')
+@mentors_only
 def edit_subject(request, subject_id):
     subject_id = int(subject_id)
     try:
@@ -98,7 +102,7 @@ def edit_subject(request, subject_id):
        return redirect('/mentorski/subjects')
     return render(request, 'mentorski/subject_edit.html', {'subject_form':subject_form})
 
-@login_required(login_url='/mentorski/login')
+@mentors_only
 def delete_subject(request, subject_id):
     subject_id = int(subject_id)
     try:
@@ -108,7 +112,7 @@ def delete_subject(request, subject_id):
     subject.delete()
     return redirect('/mentorski/subjects')
 
-@login_required(login_url='/mentorski/login')
+@mentors_only
 def view_subject(request, subject_id):
     subject_id = int(subject_id)
     try:
@@ -118,68 +122,95 @@ def view_subject(request, subject_id):
     subject_form = SubjectView(request.POST or None, instance = subject)
     return render(request, 'mentorski/subject_view.html', {'subject_form':subject_form})
 
-# from django.shortcuts import render, redirect
-# from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-# from django.contrib.auth import authenticate, login
-# from django.contrib.auth.decorators import login_required
-# from .forms import RegistrationForm, KorisnikAuthenticationForm
-# from .models import Korisnici
+@login_required(login_url='/mentorski/login')
+def view_student(request, student_id):
 
-# # Create your views here.
+    if request.user.id != student_id and request.user.role != "Mentor":
+        return redirect('/')
 
-# def signin(request):    
-#     if request.method == 'GET':
-#         userForm = AuthenticationForm()
-#         return render(request, 'mentorski/signin.html', {'form': userForm})
-#     elif request.method == 'POST':
-#         userForm = AuthenticationForm(data=request.POST) # pass request data to authenticate
-#         if userForm.is_valid():
-#             user = userForm.get_user()
-#             login(request, user)
-#             return redirect('/mentorski/register')
-#         else:
-#             return render(request, 'mentorski/signin.html', {'form': userForm})
-#     else:
-#         return HttpResonseNotAllowed()
+    context = {}
+    student_id = int(student_id)
+    student = Korisnici.objects.get(pk=student_id)    
 
-# def registration_view(request):
-#     context = {}
-#     if request.method == 'POST':
-#         form = RegistrationForm(request.POST)
-#         if form.is_valid():
-#             form.save()
-#             email = form.cleaned_data.get('email')
-#             raw_password = form.cleaned_data.get('password')
-#             account = authenticate(email="email", password=raw_password)
-#             return redirect('/mentorski/signin')
-#         else:
-#             context['registration_form'] = form
-#     else:
-#         form = RegistrationForm()
-#         context['registration_form'] = form
-#     return render(request, 'mentorski/register.html', context)
+    enrollments = Upisi.objects.filter(student_id=student.id)
+    enrolled_subject_ids = []
+    passed_enrolled_subject_ids = []
+    for enrolled in enrollments:
+        enrolled_subject_ids.append(enrolled.predmet_id)
+        if (enrolled.status == "polozeno"):
+            passed_enrolled_subject_ids.append(enrolled.predmet_id)
 
-# def login_view(request):
-#     context = {}
+    # enrolled subjects by semester
+    enrolled_subjects_by_semester = {}
+    enrolled_subjects = Predmeti.objects.filter(pk__in=enrolled_subject_ids)
+    for enrolled_subject in enrolled_subjects:
+        if student.status == "Redovni":
+            semester_number = enrolled_subject.sem_redovni
+        elif student.status == "Izvanredni":
+            semester_number = enrolled_subject.sem_izvanredni            
+        if semester_number in enrolled_subjects_by_semester:
+            enrolled_subjects_by_semester[semester_number].append(enrolled_subject)
+        else:
+            enrolled_subjects_by_semester[semester_number] = [enrolled_subject]
 
-#     user = request.user
-#     if user.is_authenticated: # if already logged in
-#         a = 5
-#         #return redirect("/mentorski/signin")
+    # not enrolled subjects
+    not_enrolled_subjects = Predmeti.objects.filter().exclude(pk__in=enrolled_subject_ids)
+
+    context["student"] = student
+    context["enrolled_subjects_by_semester"] = OrderedDict(sorted(enrolled_subjects_by_semester.items()))
+    context["not_enrolled_subjects"] = not_enrolled_subjects    
+    context["passed_enrolled_subject_ids"] = passed_enrolled_subject_ids
+    context["student_id"] = student_id
     
-#     if request.method == "POST":
-#         form = KorisnikAuthenticationForm(request.POST)
-#         if form.is_valid():
-#             email = request.POST['email']
-#             password = request.POST['password']
-#             user = authenticate(email = email, password = password)
-#             print (user)
-#             if (user):
-#                 login(request, user)
-#                 return redirect("/mentorski/signin")
-#     else:
-#         form = KorisnikAuthenticationForm()
+    return render(request, 'mentorski/student_view.html', context)
 
-#     context['login_form'] = form
-#     return render(request, 'mentorski/login.html', context)             
-    
+@login_required(login_url='/mentorski/login')
+def enroll_subject(request, subject_id, student_id):
+
+    if request.user.id != student_id and request.user.role != "Mentor":
+        return redirect('/')
+
+    student = Korisnici.objects.get(pk = student_id)
+    subject = Predmeti.objects.get(pk = subject_id)
+    Upisi.objects.create(student_id = student.id, predmet_id = subject.id, status = "nepolozeno")    
+
+    return redirect('/mentorski/student_view/'+str(student.id))
+
+@login_required(login_url='/mentorski/login')
+def disenroll_subject(request, subject_id, student_id):
+
+    if request.user.id != student_id and request.user.role != "Mentor":
+        return redirect('/')
+
+    student = Korisnici.objects.get(pk = student_id)
+    subject = Predmeti.objects.get(pk = subject_id)
+    enrollment = Upisi.objects.filter(student_id = student.id, predmet_id = subject.id)
+    enrollment.delete()
+
+    return redirect('/mentorski/student_view/'+str(student.id))
+
+@login_required(login_url='/mentorski/login')
+def mark_subject_as_passed(request, subject_id, student_id):
+
+    if request.user.id != student_id and request.user.role != "Mentor":
+        return redirect('/')
+
+    student = Korisnici.objects.get(pk = student_id)
+    subject = Predmeti.objects.get(pk = subject_id)
+    enrollment = Upisi.objects.filter(student_id = student.id, predmet_id = subject.id)
+    enrollment.update(status="polozeno")
+
+    return redirect('/mentorski/student_view/'+str(student.id))
+
+@login_required(login_url='/mentorski/login')
+def mark_subject_as_not_passed(request, subject_id, student_id):
+
+    if request.user.id != student_id and request.user.role != "Mentor":
+        return redirect('/')
+
+    student = Korisnici.objects.get(pk = student_id)
+    subject = Predmeti.objects.get(pk = subject_id)
+    enrollment = Upisi.objects.filter(student_id = student.id, predmet_id = subject.id)
+    enrollment.update(status="nepolozeno")
+
+    return redirect('/mentorski/student_view/'+str(student.id))

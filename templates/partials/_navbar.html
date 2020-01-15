@@ -10,7 +10,7 @@
 				<a class="navbar-brand" href="/mentorski/subjects">Subjects</a>
 			{% endif %}
 			{% if user.role != 'Mentor' %}
-				<a class="navbar-brand" href="/mentorski/students">Enroll</a>
+				<a class="navbar-brand" href="/mentorski/student_view/{{user.id}}">Enroll</a>
 			{% endif %}				
 		<a class="navbar-brand" href="/mentorski/logout">Logout</a>
 		{% endif %}
