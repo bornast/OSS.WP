@@ -20,6 +20,5 @@ from mentorski import views
 urlpatterns = [
     path('', include('pages.urls')),
     path('mentorski/', include('mentorski.urls')),
-    path('polls/', include('polls.urls')),
     path('admin/', admin.site.urls),
 ]
