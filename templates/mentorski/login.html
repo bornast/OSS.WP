@@ -13,20 +13,25 @@
 				</div>
 
 				{% if field.help_text %}
-				<small style="color: grey;">{{ field.help_text }}</small>
+					<small style="color: grey;">{{ field.help_text }}</small>
 				{% endif %}
 
 				{% for error in field.errors %}
-				<p style="color: red;">{{ error }}</p>
+					<p style="color: red;">{{ error }}</p>
 				{% endfor %}
 
-				{% if login_form.non_field_errors %}
-				<div style="color: red">
-					<p>{{ login_form.non_field_errors }}</p>
-				</div>
+				{% if form.non_field_errors %}
+					<div style="color: red">
+						<p>{{ form.non_field_errors }}</p>
+					</div>
 				{% endif %}
 				<br>
 			{% endfor %}
+			{% if login_error %}
+				<div style="color: red">
+					<p>{{ login_error }}</p>
+				</div>
+			{% endif %}
 			<br>
 			<input type="submit" class="btn btn-primary" value="Login">
 		</form>
