@@ -5,7 +5,7 @@ from django.utils.http import is_safe_url
 from django.contrib.auth.decorators import login_required
 from .models import Korisnici, Predmeti, Upisi
 from .forms import LoginForm, RegisterForm, SubjectCreate, SubjectView
-from .decorators import mentors_only
+from .decorators import mentors_only, mentor_or_student_himself
 from collections import OrderedDict
 
 def login_page(request):
@@ -156,53 +156,33 @@ def view_student(request, student_id):
     
     return render(request, 'mentorski/student_view.html', context)
 
-@login_required(login_url='/mentorski/login')
-def enroll_subject(request, subject_id, student_id):
-
-    if request.user.id != student_id and request.user.role != "Mentor":
-        return redirect('/')
-
-    student = Korisnici.objects.get(pk = student_id)
-    subject = Predmeti.objects.get(pk = subject_id)
+@mentor_or_student_himself
+def enroll_subject(request):
+    student = Korisnici.objects.get(pk = int(request.POST.get("student_id", -1)))
+    subject = Predmeti.objects.get(pk = int(request.POST.get("subject_id", -1)))
     Upisi.objects.create(student_id = student.id, predmet_id = subject.id, status = "nepolozeno")    
-
     return redirect('/mentorski/student_view/'+str(student.id))
 
-@login_required(login_url='/mentorski/login')
-def disenroll_subject(request, subject_id, student_id):
-
-    if request.user.id != student_id and request.user.role != "Mentor":
-        return redirect('/')
-
-    student = Korisnici.objects.get(pk = student_id)
-    subject = Predmeti.objects.get(pk = subject_id)
+@mentor_or_student_himself
+def disenroll_subject(request):
+    student = Korisnici.objects.get(pk = int(request.POST.get("student_id", -1)))
+    subject = Predmeti.objects.get(pk = int(request.POST.get("subject_id", -1)))
     enrollment = Upisi.objects.filter(student_id = student.id, predmet_id = subject.id)
     enrollment.delete()
-
     return redirect('/mentorski/student_view/'+str(student.id))
 
-@login_required(login_url='/mentorski/login')
-def mark_subject_as_passed(request, subject_id, student_id):
-
-    if request.user.id != student_id and request.user.role != "Mentor":
-        return redirect('/')
-
-    student = Korisnici.objects.get(pk = student_id)
-    subject = Predmeti.objects.get(pk = subject_id)
+@mentor_or_student_himself
+def mark_subject_as_passed(request):
+    student = Korisnici.objects.get(pk = int(request.POST.get("student_id", -1)))
+    subject = Predmeti.objects.get(pk = int(request.POST.get("subject_id", -1)))
     enrollment = Upisi.objects.filter(student_id = student.id, predmet_id = subject.id)
     enrollment.update(status="polozeno")
-
     return redirect('/mentorski/student_view/'+str(student.id))
 
-@login_required(login_url='/mentorski/login')
-def mark_subject_as_not_passed(request, subject_id, student_id):
-
-    if request.user.id != student_id and request.user.role != "Mentor":
-        return redirect('/')
-
-    student = Korisnici.objects.get(pk = student_id)
-    subject = Predmeti.objects.get(pk = subject_id)
+@mentor_or_student_himself
+def mark_subject_as_not_passed(request):    
+    student = Korisnici.objects.get(pk = int(request.POST.get("student_id", -1)))
+    subject = Predmeti.objects.get(pk = int(request.POST.get("subject_id", -1)))
     enrollment = Upisi.objects.filter(student_id = student.id, predmet_id = subject.id)
     enrollment.update(status="nepolozeno")
-
     return redirect('/mentorski/student_view/'+str(student.id))

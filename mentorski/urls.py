@@ -16,8 +16,8 @@ urlpatterns = [
     path('subject_delete/<int:subject_id>/', views.delete_subject, name='delete_subject'),
     path('subject_view/<int:subject_id>/', views.view_subject, name='view_subject'),
     path('student_view/<int:student_id>/', views.view_student, name='view_student'),
-    path('enroll_subject/<int:subject_id>/<int:student_id>/', views.enroll_subject, name='enroll_subject'),
-    path('disenroll_subject/<int:subject_id>/<int:student_id>/', views.disenroll_subject, name='disenroll_subject'),
-    path('mark_subject_as_passed/<int:subject_id>/<int:student_id>/', views.mark_subject_as_passed, name='mark_subject_as_passed'),    
-    path('mark_subject_as_not_passed/<int:subject_id>/<int:student_id>/', views.mark_subject_as_not_passed, name='mark_subject_as_not_passed'),
+    path('enroll_subject/', views.enroll_subject, name='enroll_subject'),
+    path('disenroll_subject/', views.disenroll_subject, name='disenroll_subject'),
+    path('mark_subject_as_passed/', views.mark_subject_as_passed, name='mark_subject_as_passed'),    
+    path('mark_subject_as_not_passed/', views.mark_subject_as_not_passed, name='mark_subject_as_not_passed'),
 ]
